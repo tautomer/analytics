@@ -58,6 +58,7 @@ class Json implements IDatasource
         $template[] = ['id' => 'customHeaders', 'name' => 'Custom headers', 'placeholder' => 'key: value,key: value'];
         $template[] = ['id' => 'auth', 'name' => $this->l10n->t('Authentication'), 'placeholder' => 'User:Password'];
         $template[] = ['id' => 'body', 'name' => 'Request body', 'placeholder' => ''];
+        $template[] = ['id' => 'insecure', 'name' => $this->l10n->t('Allow insecure connections'), 'placeholder' => '2-' . $this->l10n->t('No') . '/0-' . $this->l10n->t('Yes'), 'type' => 'tf'];
         $template[] = ['id' => 'timestamp', 'name' => $this->l10n->t('Timestamp of data load'), 'placeholder' => 'true-' . $this->l10n->t('Yes') . '/false-' . $this->l10n->t('No'), 'type' => 'tf'];
         return $template;
     }
@@ -73,6 +74,8 @@ class Json implements IDatasource
         $path = $option['path'];
         $auth = $option['auth'];
         $post = $option['method'] === 'POST';
+        # VERITYHOST=0 to disable verification, 2 to enable. 1 is no longer a valid option.
+        $verifyHost = intval($option['insecure']);
         $contentType = ($option['content-type'] && $option['content-type'] !== '') ? $option['content-type'] : 'application/json';
         $data = array();
         $http_code = '';
@@ -84,6 +87,7 @@ class Json implements IDatasource
         $ch = curl_init();
         if ($ch !== false) {
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifyHost);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_POST, $post);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
